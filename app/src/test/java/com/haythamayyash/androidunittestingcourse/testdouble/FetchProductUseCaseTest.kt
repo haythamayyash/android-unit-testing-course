@@ -3,6 +3,7 @@ package com.haythamayyash.androidunittestingcourse.testdouble
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
@@ -25,88 +26,78 @@ class FetchProductUseCaseTest {
         sut = FetchProductUseCase(productServiceTd, productCacheTd, productAnalyticManagerTd)
     }
 
-    //id passed correctly to service
+
     @Test
     fun getProduct_success_idPassedToServiceCorrectly() {
         sut.fetchProduct(ID)
-        assertThat(productServiceTd.id, `is`("ll"))
+        assertEquals(ID, productServiceTd.id)
     }
 
-    //if getProduct success - product should cached
-    @Test
-    fun getProduct_success_productShouldCached() {
-        sut.fetchProduct("jj")
-        assertThat(productCacheTd.getProduct(), `is`(SUCCESS_PRODUCT))
-    }
-
-    //if getProduct general error - product should not cached
-    @Test
-    fun getProduct_generalError_productShouldNotCached() {
-        productServiceTd.isGeneralError = true
-        sut.fetchProduct(ID)
-        assertThat(productCacheTd.getProduct(), `is`(NON_INITIALIZED_PRODUCT))
-    }
-
-    //if getProduct server error - product should not cached
-    @Test
-    fun getProduct_serverError_productShouldNotCached() {
-        productServiceTd.isServerError = true
-        sut.fetchProduct(ID)
-        assertThat(productCacheTd.getProduct(), `is`(NON_INITIALIZED_PRODUCT))
-    }
-
-    //if getProduct success - logFailure should not call
     @Test
     fun getProduct_success_noInteractionOnLogFailure() {
-        sut.fetchProduct("ll")
-        assertThat(productAnalyticManagerTd.failureCounter, `is`(0))
+        sut.fetchProduct(ID)
+        assertEquals(0, productAnalyticManagerTd.failureCounter)
     }
 
-    //if getProduct general error - logFailure should called once
     @Test
     fun getProduct_generalError_logFailureShouldCalledOnce() {
-        productServiceTd.isGeneralError = false
+        productServiceTd.isGeneralError = true
         sut.fetchProduct(ID)
-        assertThat(productAnalyticManagerTd.failureCounter, `is`(1))
+        assertEquals(1, productAnalyticManagerTd.failureCounter)
     }
 
-    //if getProduct server error - logFailure should called once
     @Test
     fun getProduct_serverError_logFailureShouldCalledOnce() {
         productServiceTd.isServerError = true
         sut.fetchProduct(ID)
-        assertThat(productAnalyticManagerTd.failureCounter, `is`(1))
+        assertEquals(1, productAnalyticManagerTd.failureCounter)
     }
 
-    //if getProduct success - success returned
+    @Test
+    fun getProduct_success_productShouldCached() {
+        sut.fetchProduct("jj")
+        assertEquals(SUCCESS_PRODUCT, productCacheTd.getProduct())
+    }
+
+    @Test
+    fun getProduct_generalError_productShouldNotCached() {
+        productServiceTd.isGeneralError = true
+        sut.fetchProduct(ID)
+        assertEquals(NON_INITIALIZED_PRODUCT, productCacheTd.getProduct())
+    }
+
+    @Test
+    fun getProduct_serverError_productShouldNotCached() {
+        productServiceTd.isServerError = true
+        sut.fetchProduct(ID)
+        assertEquals(NON_INITIALIZED_PRODUCT, productCacheTd.getProduct())
+    }
+
     @Test
     fun getProduct_success_successReturned() {
         val result = sut.fetchProduct(ID)
         assertThat(result, `is`(FetchProductUseCase.Result.Success(SUCCESS_PRODUCT)))
     }
 
-    //if getProduct general error - failure returned
     @Test
     fun getProduct_generalError_failureReturned() {
         productServiceTd.isGeneralError = true
         val result = sut.fetchProduct(ID)
-        assertThat(result, `is`(FetchProductUseCase.Result.Failure))
+        assertEquals(FetchProductUseCase.Result.Failure, result)
     }
 
-    //if getProduct server error  - failure returned
     @Test
     fun getProduct_serverError_failureReturned() {
-        productServiceTd.isServerError = false
+        productServiceTd.isServerError = true
         val result = sut.fetchProduct(ID)
-        assertThat(result, `is`(FetchProductUseCase.Result.Failure))
+        assertEquals(FetchProductUseCase.Result.Failure, result)
     }
 
     @Test
     fun getProduct_NetworkError_NetworkError() {
-        productServiceTd.isNetworkError = false
+        productServiceTd.isNetworkError = true
         val result = sut.fetchProduct(ID)
-        assertThat(result, `is`(FetchProductUseCase.Result.NetworkError))
-
+        assertEquals(FetchProductUseCase.Result.NetworkError, result)
     }
 
     class ProductServiceTd : ProductService {
